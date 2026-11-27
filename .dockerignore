@@ -1,0 +1,28 @@
+# Build artifacts (hindari menyalin folder target yang besar ke Docker build context)
+target/
+**/*.rs.bk
+
+# Version control
+.git/
+.gitignore
+
+# Environment & secrets (jangan pernah menyalin file .env ke dalam image)
+.env
+.env.*
+!.env.example
+
+# Dokumentasi & file infrastruktur yang tidak diperlukan saat compile
+README.md
+AGENTS.md
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Integration tests (tidak diperlukan untuk build binary production)
+tests/
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
