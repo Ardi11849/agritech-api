@@ -10,6 +10,10 @@ use crate::modules::finance::hpp::dto::{
 #[async_trait]
 pub trait HppRepository: Send + Sync {
     async fn find_all_sessions(&self) -> Result<Vec<HppSessionCalcInput>, AppError>;
+    async fn find_session_by_id(
+        &self,
+        session_id: &str,
+    ) -> Result<Option<HppSessionCalcInput>, AppError>;
     async fn find_all_purchases(&self) -> Result<Vec<HppPurchaseCalcInput>, AppError>;
     async fn find_all_sales(&self) -> Result<Vec<HppSaleCalcInput>, AppError>;
     async fn lock_snapshot(
@@ -83,6 +87,54 @@ impl HppRepository for PgHppRepository {
             .collect();
 
         Ok(items)
+    }
+
+    async fn find_session_by_id(
+        &self,
+        session_id: &str,
+    ) -> Result<Option<HppSessionCalcInput>, AppError> {
+        let row = sqlx::query(
+            r#"
+            SELECT
+                ps.id, ps.session_name, ps.status, ps.start_date, ps.harvest_date,
+                ps.total_holes, ps.mortality_count,
+                COALESCE(ps.actual_yield_kg, 0.00) AS actual_yield_kg,
+                ps.final_hpp, ps.final_revenue, ps.final_shipping_subsidy, ps.final_net_profit,
+                ps.hpp_snapshot_locked_at, ps.hpp_snapshot_locked_by,
+                ps.location_id, l.name AS location_name,
+                pt.name AS plant_name, pt.variety AS plant_variety
+            FROM planting_sessions ps
+            JOIN locations l ON l.id = ps.location_id
+            JOIN plant_types pt ON pt.id = ps.plant_type_id
+            WHERE ps.id = $1
+            "#,
+        )
+        .bind(session_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(row.map(|r| HppSessionCalcInput {
+            session_id: r.get("id"),
+            session_name: r.get("session_name"),
+            plant_name: r.get("plant_name"),
+            plant_variety: r.get("plant_variety"),
+            location_id: r.get("location_id"),
+            location_name: r.get("location_name"),
+            status: r.get("status"),
+            start_date: r.get("start_date"),
+            harvest_date: r.get("harvest_date"),
+            total_holes: r.get("total_holes"),
+            mortality_count: r.get("mortality_count"),
+            actual_yield_kg: r
+                .get::<Option<Decimal>, _>("actual_yield_kg")
+                .unwrap_or(Decimal::ZERO),
+            final_hpp: r.get("final_hpp"),
+            final_revenue: r.get("final_revenue"),
+            final_shipping_subsidy: r.get("final_shipping_subsidy"),
+            final_net_profit: r.get("final_net_profit"),
+            hpp_snapshot_locked_at: r.get("hpp_snapshot_locked_at"),
+            hpp_snapshot_locked_by: r.get("hpp_snapshot_locked_by"),
+        }))
     }
 
     async fn find_all_purchases(&self) -> Result<Vec<HppPurchaseCalcInput>, AppError> {

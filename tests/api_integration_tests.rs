@@ -954,6 +954,57 @@ impl agritech_api::modules::finance::tax::service::TaxService for MockTax {
     }
 }
 
+struct MockSummary;
+#[async_trait]
+impl agritech_api::modules::reports::summary::service::ReportSummaryService for MockSummary {
+    async fn get_cashflow_summary(
+        &self,
+        _query: &agritech_api::modules::reports::summary::dto::CashflowSummaryQuery,
+    ) -> Result<agritech_api::modules::reports::summary::dto::CashflowSummaryResponse, AppError>
+    {
+        unreachable!()
+    }
+}
+
+struct MockAudit;
+#[async_trait]
+impl agritech_api::modules::reports::audit::service::AuditService for MockAudit {
+    async fn get_logs(
+        &self,
+        _query: &agritech_api::modules::reports::audit::dto::AuditLogQuery,
+    ) -> Result<agritech_api::modules::reports::audit::dto::AuditLogListResponse, AppError> {
+        unreachable!()
+    }
+    async fn get_modules(&self) -> Result<Vec<String>, AppError> {
+        unreachable!()
+    }
+    async fn record_event(
+        &self,
+        _action: agritech_api::modules::reports::audit::dto::AuditAction,
+        _module: &str,
+        _user_id: Option<String>,
+        _username: &str,
+        _target_id: &str,
+        _description: &str,
+        _old_data: Option<serde_json::Value>,
+        _new_data: Option<serde_json::Value>,
+        _ip_address: Option<String>,
+    ) -> Result<(), AppError> {
+        Ok(())
+    }
+}
+
+struct MockAiAudit;
+#[async_trait]
+impl agritech_api::modules::reports::ai_audit::service::AiAuditService for MockAiAudit {
+    async fn scan(
+        &self,
+        _query: &agritech_api::modules::reports::ai_audit::dto::AiAuditScanQuery,
+    ) -> Result<agritech_api::modules::reports::ai_audit::dto::AiAuditScanResponse, AppError> {
+        unreachable!()
+    }
+}
+
 fn build_test_state() -> AppState {
     let pool = PgPoolOptions::new()
         .connect_lazy("postgres://postgres:postgres@127.0.0.1:5432/agritech_test")
@@ -998,6 +1049,9 @@ fn build_test_state() -> AppState {
         sale_service: Arc::new(MockSale),
         hpp_service: Arc::new(MockHpp),
         tax_service: Arc::new(MockTax),
+        report_summary_service: Arc::new(MockSummary),
+        audit_service: Arc::new(MockAudit),
+        ai_audit_service: Arc::new(MockAiAudit),
     }
 }
 

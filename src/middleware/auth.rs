@@ -149,6 +149,17 @@ pub fn resolve_target_module_path(path: &str) -> Result<(&'static str, &'static 
         _ if path.starts_with("/api/v1/finance/tax") || path.starts_with("/api/v1/tax") => {
             Ok(("/finance/tax", "/tax"))
         }
+        _ if path.starts_with("/api/v1/reports/summary") || path.starts_with("/api/v1/laporan") => {
+            Ok(("/reports/summary", "/laporan"))
+        }
+        _ if path.starts_with("/api/v1/reports/audit") || path.starts_with("/api/v1/audit") => {
+            Ok(("/reports/audit", "/audit"))
+        }
+        _ if path.starts_with("/api/v1/reports/ai-audit")
+            || path.starts_with("/api/v1/ai-audit") =>
+        {
+            Ok(("/reports/ai-audit", "/ai-audit"))
+        }
         _ => Err(AppError::Forbidden(
             "Anda tidak memiliki hak akses untuk operasi ini".to_string(),
         )),
@@ -556,6 +567,30 @@ mod tests {
         assert_eq!(
             resolve_target_module_path("/api/v1/tax").unwrap(),
             ("/finance/tax", "/tax")
+        );
+        assert_eq!(
+            resolve_target_module_path("/api/v1/reports/summary").unwrap(),
+            ("/reports/summary", "/laporan")
+        );
+        assert_eq!(
+            resolve_target_module_path("/api/v1/laporan").unwrap(),
+            ("/reports/summary", "/laporan")
+        );
+        assert_eq!(
+            resolve_target_module_path("/api/v1/reports/audit").unwrap(),
+            ("/reports/audit", "/audit")
+        );
+        assert_eq!(
+            resolve_target_module_path("/api/v1/audit").unwrap(),
+            ("/reports/audit", "/audit")
+        );
+        assert_eq!(
+            resolve_target_module_path("/api/v1/reports/ai-audit/scan").unwrap(),
+            ("/reports/ai-audit", "/ai-audit")
+        );
+        assert_eq!(
+            resolve_target_module_path("/api/v1/ai-audit").unwrap(),
+            ("/reports/ai-audit", "/ai-audit")
         );
 
         // Fail-closed on unmapped paths

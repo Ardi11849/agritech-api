@@ -52,6 +52,12 @@ use crate::modules::plan::sop::repository::PgSopRepository;
 use crate::modules::plan::sop::service::{SopService, SopServiceImpl};
 use crate::modules::plan::tasks::repository::PgTaskRepository;
 use crate::modules::plan::tasks::service::{TaskService, TaskServiceImpl};
+use crate::modules::reports::ai_audit::repository::PgAiAuditRepository;
+use crate::modules::reports::ai_audit::service::{AiAuditService, AiAuditServiceImpl};
+use crate::modules::reports::audit::repository::PgAuditRepository;
+use crate::modules::reports::audit::service::{AuditService, AuditServiceImpl};
+use crate::modules::reports::summary::repository::PgReportSummaryRepository;
+use crate::modules::reports::summary::service::{ReportSummaryService, ReportSummaryServiceImpl};
 use crate::modules::role::repository::{PgRolePermissionRepository, PgRoleRepository};
 use crate::modules::role::service::{
     RolePermissionService, RolePermissionServiceImpl, RoleService, RoleServiceImpl,
@@ -89,6 +95,9 @@ pub struct AppState {
     pub sale_service: Arc<dyn SaleService>,
     pub hpp_service: Arc<dyn HppService>,
     pub tax_service: Arc<dyn TaxService>,
+    pub report_summary_service: Arc<dyn ReportSummaryService>,
+    pub audit_service: Arc<dyn AuditService>,
+    pub ai_audit_service: Arc<dyn AiAuditService>,
 }
 
 pub async fn fallback_handler() -> impl IntoResponse {
@@ -192,6 +201,15 @@ pub fn build_app_state(pool: PgPool, config: AppConfig) -> AppState {
     let tax_repo = Arc::new(PgTaxRepository::new(pool.clone()));
     let tax_service = Arc::new(TaxServiceImpl::new(tax_repo));
 
+    let report_summary_repo = Arc::new(PgReportSummaryRepository::new(pool.clone()));
+    let report_summary_service = Arc::new(ReportSummaryServiceImpl::new(report_summary_repo));
+
+    let audit_repo = Arc::new(PgAuditRepository::new(pool.clone()));
+    let audit_service = Arc::new(AuditServiceImpl::new(audit_repo));
+
+    let ai_audit_repo = Arc::new(PgAiAuditRepository::new(pool.clone()));
+    let ai_audit_service = Arc::new(AiAuditServiceImpl::new(ai_audit_repo, hpp_service.clone()));
+
     AppState {
         db: pool,
         config: config_arc,
@@ -217,5 +235,8 @@ pub fn build_app_state(pool: PgPool, config: AppConfig) -> AppState {
         sale_service,
         hpp_service,
         tax_service,
+        report_summary_service,
+        audit_service,
+        ai_audit_service,
     }
 }

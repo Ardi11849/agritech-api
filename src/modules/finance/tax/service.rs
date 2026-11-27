@@ -196,6 +196,12 @@ impl TaxService for TaxServiceImpl {
             }
         }
 
+        let mut req = req;
+        req.billing_code = req.billing_code.trim().to_string();
+        if let Some(notes) = req.notes {
+            req.notes = Some(notes.trim().to_string());
+        }
+
         let settings = self.repo.get_settings().await?;
         let (realized_revenue, _) = self
             .repo

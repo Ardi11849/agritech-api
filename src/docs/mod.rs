@@ -138,6 +138,10 @@ impl Modify for SecurityAddon {
         crate::modules::finance::tax::handler::pay_tax,
         crate::modules::finance::tax::handler::update_tax_settings,
         crate::modules::finance::tax::handler::delete_tax_report,
+        crate::modules::reports::summary::handler::get_cashflow_summary,
+        crate::modules::reports::audit::handler::get_logs,
+        crate::modules::reports::audit::handler::get_modules,
+        crate::modules::reports::ai_audit::handler::scan,
     ),
     components(
         schemas(
@@ -265,6 +269,21 @@ impl Modify for SecurityAddon {
             crate::modules::finance::tax::dto::TaxDashboardData,
             crate::modules::finance::tax::dto::PayTaxRequest,
             crate::modules::finance::tax::dto::UpdateTaxSettingsRequest,
+            crate::modules::reports::summary::dto::CashflowEntryType,
+            crate::modules::reports::summary::dto::CashflowTypeFilter,
+            crate::modules::reports::summary::dto::SortOrder,
+            crate::modules::reports::summary::dto::CashflowPeriodMeta,
+            crate::modules::reports::summary::dto::CashflowSummaryKpi,
+            crate::modules::reports::summary::dto::CashflowLedgerEntry,
+            crate::modules::reports::summary::dto::CashflowSummaryResponse,
+            crate::modules::reports::audit::dto::AuditAction,
+            crate::modules::reports::audit::dto::AuditLogItem,
+            crate::modules::reports::audit::dto::AuditLogListResponse,
+            crate::modules::reports::ai_audit::dto::AnomalySeverity,
+            crate::modules::reports::ai_audit::dto::AnomalyCategory,
+            crate::modules::reports::ai_audit::dto::AiAuditStats,
+            crate::modules::reports::ai_audit::dto::AiAuditInsight,
+            crate::modules::reports::ai_audit::dto::AiAuditScanResponse,
         )
     ),
     tags(
@@ -289,7 +308,8 @@ impl Modify for SecurityAddon {
         (name = "Finance / Purchases", description = "Purchase headers, line items allocation, & inventory synchronization"),
         (name = "Finance / Sales", description = "Harvest sales pipeline, receivable management, & shipping subsidies"),
         (name = "Finance / HPP", description = "Cost of Goods Sold (HPP) engine, hole-ratio allocation, & unit economics"),
-        (name = "Finance / Tax", description = "MSME Final Tax (PPh Final UMKM 0.5%), deadline tracking, & payment records")
+        (name = "Finance / Tax", description = "MSME Final Tax (PPh Final UMKM 0.5%), deadline tracking, & payment records"),
+        (name = "Reports, Audit Trail & AI Intelligence", description = "Cashflow ledger summary, system audit trail, & AI anomaly detection engine")
     ),
     modifiers(&SecurityAddon),
     info(

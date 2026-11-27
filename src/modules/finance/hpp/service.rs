@@ -387,6 +387,19 @@ impl HppServiceImpl {
 #[async_trait]
 impl HppService for HppServiceImpl {
     async fn get_hpp_list(&self, query: &HppListQuery) -> Result<HppListResponse, AppError> {
+        // Validate status enum if provided
+        if let Some(status) = &query.status {
+            let s = status.trim();
+            if !s.is_empty()
+                && !s.eq_ignore_ascii_case("Active")
+                && !s.eq_ignore_ascii_case("Completed")
+            {
+                return Err(AppError::BadRequest(format!(
+                    "Filter status '{s}' tidak valid. Nilai yang diizinkan: 'Active' atau 'Completed'"
+                )));
+            }
+        }
+
         let today = query.date.unwrap_or_else(today_wib);
 
         let sessions = self.repo.find_all_sessions().await?;
@@ -460,21 +473,29 @@ impl HppService for HppServiceImpl {
     ) -> Result<RHPPDetailResponse, AppError> {
         let today = eval_date.unwrap_or_else(today_wib);
 
-        let sessions = self.repo.find_all_sessions().await?;
-        let target = sessions
-            .iter()
-            .find(|s| s.session_id == session_id)
-            .ok_or_else(|| {
-                AppError::NotFound(format!(
+        let target_raw = self.repo.find_session_by_id(session_id).await?;
+        let target = match target_raw {
+            Some(t) => {
+                if t.status.eq_ignore_ascii_case("Cancelled") {
+                    return Err(AppError::BadRequest(format!(
+                        "Sesi tanam dengan ID '{session_id}' telah dibatalkan (Cancelled) dan tidak dapat dianalisa"
+                    )));
+                }
+                t
+            }
+            None => {
+                return Err(AppError::NotFound(format!(
                     "Sesi tanam dengan ID '{session_id}' tidak ditemukan"
-                ))
-            })?;
+                )));
+            }
+        };
 
+        let sessions = self.repo.find_all_sessions().await?;
         let purchases = self.repo.find_all_purchases().await?;
         let sales = self.repo.find_all_sales().await?;
         let daily_holes = build_location_daily_holes(&sessions, today);
 
-        let comp = calculate_session_rhpp(target, &purchases, &sales, today, &daily_holes);
+        let comp = calculate_session_rhpp(&target, &purchases, &sales, today, &daily_holes);
 
         Ok(RHPPDetailResponse {
             summary: comp.summary,
@@ -491,15 +512,22 @@ impl HppService for HppServiceImpl {
         actor: &str,
     ) -> Result<RHPPDetailResponse, AppError> {
         let today = today_wib();
-        let sessions = self.repo.find_all_sessions().await?;
-        let target = sessions
-            .iter()
-            .find(|s| s.session_id == session_id)
-            .ok_or_else(|| {
-                AppError::NotFound(format!(
+        let target_raw = self.repo.find_session_by_id(session_id).await?;
+        let target = match target_raw {
+            Some(t) => {
+                if t.status.eq_ignore_ascii_case("Cancelled") {
+                    return Err(AppError::BadRequest(format!(
+                        "Sesi tanam dengan ID '{session_id}' telah dibatalkan (Cancelled) dan tidak dapat dikunci"
+                    )));
+                }
+                t
+            }
+            None => {
+                return Err(AppError::NotFound(format!(
                     "Sesi tanam dengan ID '{session_id}' tidak ditemukan"
-                ))
-            })?;
+                )));
+            }
+        };
 
         if !target.status.eq_ignore_ascii_case("Completed") {
             return Err(AppError::BadRequest(
@@ -513,11 +541,12 @@ impl HppService for HppServiceImpl {
             ));
         }
 
+        let sessions = self.repo.find_all_sessions().await?;
         let purchases = self.repo.find_all_purchases().await?;
         let sales = self.repo.find_all_sales().await?;
         let daily_holes = build_location_daily_holes(&sessions, today);
 
-        let comp = calculate_session_rhpp(target, &purchases, &sales, today, &daily_holes);
+        let comp = calculate_session_rhpp(&target, &purchases, &sales, today, &daily_holes);
 
         self.repo
             .lock_snapshot(

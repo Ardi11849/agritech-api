@@ -39,4 +39,7 @@ pub fn api_router() -> Router<AppState> {
         .nest("/api/v1/sales", finance::sales::router())
         .nest("/api/v1/hpp", finance::hpp::router())
         .nest("/api/v1/tax", finance::tax::router())
+        .nest("/api/v1/laporan", reports::summary::router())
+        .nest("/api/v1/audit", reports::audit::router())
+        .nest("/api/v1/ai-audit", reports::ai_audit::router())
 }

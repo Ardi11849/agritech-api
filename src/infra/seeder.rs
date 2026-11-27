@@ -127,11 +127,12 @@ pub async fn seed_database(pool: &PgPool) -> Result<(), AppError> {
     .execute(&mut *tx)
     .await?;
 
-    // 3. Seed Module Groups (Master Data, Plan, Produksi, Finance, Manajemen Sistem)
+    // 3. Seed Module Groups (Master Data, Plan, Produksi, Finance, Reports, Manajemen Sistem)
     let group_master_data_id = Uuid::new_v4().to_string();
     let group_plan_id = Uuid::new_v4().to_string();
     let group_ops_id = Uuid::new_v4().to_string();
     let group_finance_id = Uuid::new_v4().to_string();
+    let group_reports_id = Uuid::new_v4().to_string();
     let group_sys_id = Uuid::new_v4().to_string();
 
     let groups = [
@@ -139,6 +140,7 @@ pub async fn seed_database(pool: &PgPool) -> Result<(), AppError> {
         (&group_plan_id, "Plan", "LuClipboardCheck"),
         (&group_ops_id, "Produksi", "LuActivity"),
         (&group_finance_id, "Finance", "LuWallet"),
+        (&group_reports_id, "Reports", "LuBarChart3"),
         (&group_sys_id, "Manajemen Sistem", "LuSettings"),
     ];
 
@@ -233,6 +235,24 @@ pub async fn seed_database(pool: &PgPool) -> Result<(), AppError> {
             "LuCalculator",
         ),
         (&group_finance_id, "Perpajakan", "/finance/tax", "LuReceipt"),
+        (
+            &group_reports_id,
+            "Laporan Keuangan",
+            "/reports/summary",
+            "LuFileSpreadsheet",
+        ),
+        (
+            &group_reports_id,
+            "Audit Trail",
+            "/reports/audit",
+            "LuHistory",
+        ),
+        (
+            &group_reports_id,
+            "AI Audit",
+            "/reports/ai-audit",
+            "LuSparkles",
+        ),
         (&group_sys_id, "Pengguna", "/masters/users", "LuUsers"),
         (&group_sys_id, "Hak Akses", "/masters/roles", "LuShield"),
         (
