@@ -127,6 +127,7 @@ pub struct SessionItemResponse {
     #[schema(value_type = f64, example = 98.5)]
     pub survival_rate_percent: Decimal,
     pub growth_info: GrowthInfo,
+    pub active_targets: ActiveMetricTargets,
     pub has_reported_today: bool,
     pub latest_reading: Option<LatestReadingSummary>,
     pub notes: String,

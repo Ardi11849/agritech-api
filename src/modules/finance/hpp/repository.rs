@@ -192,7 +192,7 @@ impl HppRepository for PgHppRepository {
                 s.sale_number,
                 s.sale_date,
                 s.session_id,
-                COALESCE(c.name, s.customer_name_snapshot) AS customer_name,
+                COALESCE(NULLIF(TRIM(c.name), ''), NULLIF(TRIM(s.customer_name_snapshot), ''), 'Pelanggan Umum') AS customer_name,
                 s.unit,
                 s.quantity,
                 s.price_per_unit,

@@ -135,10 +135,9 @@ impl InventoryRepository for PgInventoryRepository {
             qb.push(")");
         }
 
-        if let Some(is_active) = query.is_active {
-            qb.push(" AND i.is_active = ");
-            qb.push_bind(is_active);
-        }
+        let active_filter = query.is_active.unwrap_or(true);
+        qb.push(" AND i.is_active = ");
+        qb.push_bind(active_filter);
 
         qb.push(" ORDER BY i.name ASC");
 

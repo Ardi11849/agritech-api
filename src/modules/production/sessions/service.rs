@@ -177,6 +177,8 @@ pub fn map_row_to_item_response(
 
     let snapshot = map_row_to_snapshot(&row);
 
+    let active_targets = resolve_active_targets(&snapshot, &growth_info);
+
     let latest_reading =
         if let (Some(lr_id), Some(lr_date), Some(lr_time), Some(lr_ppm), Some(lr_ph)) = (
             &row.latest_reading_id,
@@ -254,6 +256,7 @@ pub fn map_row_to_item_response(
         yield_achievement_percent,
         survival_rate_percent,
         growth_info,
+        active_targets,
         has_reported_today: row.has_reported_today.unwrap_or(false),
         latest_reading,
         notes: row.notes,
